@@ -1,3 +1,5 @@
+include { ANNOTATE_MAGS } from './modules/local/prodigal.nf'
+
 workflow {
     // 1. Create a channel of all fasta files
     // The .map creates the 'meta' object for naming
