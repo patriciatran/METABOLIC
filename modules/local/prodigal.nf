@@ -1,5 +1,6 @@
 process ANNOTATE_MAGS {
-    container 'quay.io/biocontainers/prodigal:2.6.3--h577a1d6_11'
+ //   container 'quay.io/biocontainers/prodigal:2.6.3--h577a1d6_11'
+    conda 'bioconda::prodigal=2.6.3 bioconda::hmmer perl bioconda::perl-bioperl'
     tag "$meta.id"
     
     // This publishDir handles the "Move to output folder" logic from your Perl script
