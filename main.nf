@@ -1,5 +1,7 @@
 include { ANNOTATE_MAGS } from './modules/local/prodigal.nf'
 include { RUN_HMMSEARCH } from './modules/local/hmmer.nf'
+//include { HMM_MOTIF_VALIDATE } from './modules/local/hmmotifvalidation.nf'
+
 
 workflow {
     // 1. Create a channel of all fasta files
@@ -16,11 +18,14 @@ workflow {
 
     // 4. Prepare HMM database sources
     ch_hmms = Channel.fromPath("${params.kofam_db_path}/*.hmm")
+    ch_faa = Channel.fromPath("results/annotations/*.faa")
 
     // 5. Run HMM search for every genome and each HMM file (this is heavy by design)
-    ch_tasks = ANNOTATE_MAGS.out.faa
-        .combine(ch_hmms)
-        .map { faa_tuple, hmm -> [faa_tuple[0], faa_tuple[1], hmm] }
-
-    RUN_HMMSEARCH(ch_tasks)
+    ch_faa_hmm = ch_faa.combine(ch_hmms).map { faa_file, hmm_file ->
+        def meta_id = faa_file.baseName   // e.g., Ga0485169_metabat2_ours.127_sub
+        def hmm_name = hmm_file.baseName  // e.g., K00001
+        [meta_id, faa_file, hmm_file, hmm_name]
+    }
+    
+    RUN_HMMSEARCH(ch_faa_hmm)
 }
