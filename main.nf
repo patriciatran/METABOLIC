@@ -1,6 +1,7 @@
 include { ANNOTATE_MAGS } from './modules/local/prodigal.nf'
 include { RUN_HMMSEARCH } from './modules/local/hmmer.nf'
-//include { HMM_MOTIF_VALIDATE } from './modules/local/hmmotifvalidation.nf'
+include { HMM_MOTIF_VALIDATE } from './modules/local/hmm_motif_validation.nf'
+include { MAKE_RESULT_TABLES } from './modules/local/make_result_tables.nf'
 
 
 workflow {
@@ -68,4 +69,14 @@ workflow {
     }
     
     RUN_HMMSEARCH(ch_faa_hmm)
+
+    //6. Run the HMM motif validation step using hmmsearch outputs
+    HMM_MOTIF_VALIDATE(RUN_HMMSEARCH.out.results)
+
+    // 7. Aggregate all motifcheck TSVs + FAA files -> worksheet 1
+    MAKE_RESULT_TABLES(
+        HMM_MOTIF_VALIDATE.out.collect(),
+        ANNOTATE_MAGS.out.faa.map { meta, faa -> faa }.collect(),
+        file(params.hmm_table_template)
+    )
 }

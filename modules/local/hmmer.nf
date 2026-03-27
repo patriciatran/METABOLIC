@@ -10,9 +10,7 @@ process RUN_HMMSEARCH {
     tuple val(meta), path(faa), path(hmm_file), val(hmm_name), val(threshold)
 
     output:
-    // Emitting a tuple allows you to keep the Sample ID attached to the result
-    //tuple val(meta), path("${meta.id}.${hmm_file.baseName}.hmmsearch_result.txt"), emit: results
-    path("${meta}.${hmm_name}.hmmsearch_result.txt")
+    tuple val(meta), path(faa), path("${meta}.${hmm_name}.hmmsearch_result.txt"), path(hmm_file), emit: results
 
     script:
     """
