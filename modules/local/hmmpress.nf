@@ -1,5 +1,4 @@
 process HMMPRESS_DB {
-    // Use bioconda hmmer package (includes hmmpress)
     conda 'bioconda::hmmer=3.3.2'
     tag "${hmm_file.simpleName}"
 

@@ -5,8 +5,6 @@ process RUN_HMMSEARCH {
     publishDir "${params.outdir}/intermediate_files/Hmmsearch_Outputs", mode:'copy'
 
     input:
-    // This matches the [meta, faa, hmm] structure from your map
-    //tuple val(meta), path(faa), path(hmm_file)
     tuple val(meta), path(faa), path(hmm_file), val(hmm_name), val(threshold)
 
     output:
