@@ -5,6 +5,8 @@
 process SETUP_DBCAN {
     conda 'bioconda::hmmer=3.3.2 python=3.11'
 
+    publishDir "${params.METABOLIC_db_path}/dbCAN", mode: 'copy', saveAs: { it.startsWith('dbCAN-fam-HMMs') ? it : null }
+
     output:
     path 'dbCAN-fam-HMMs.txt*', emit: hmm_db
 
