@@ -1,5 +1,9 @@
 <img src="https://github.com/AnantharamanLab/METABOLIC/blob/master/METABOLIC.jpg" width="85%">
 
+# Note:
+
+The `dev` branch is where I'm currently converting this pipeline into a Nextflow workflow.
+
 
 # METABOLIC
 **MET**abolic **A**nd **B**ioge**O**chemistry ana**L**yses **I**n mi**C**robes  
