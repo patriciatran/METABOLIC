@@ -13,6 +13,8 @@ include { MAKE_RESULT_TABLE5 } from './modules/local/make_result_table5.nf'
 include { SETUP_MEROPS } from './modules/local/setup_merops.nf'
 include { RUN_MEROPS } from './modules/local/run_merops.nf'
 include { MAKE_RESULT_TABLE6 } from './modules/local/make_result_table6.nf'
+include { MAKE_EXCEL_WORKBOOK } from './modules/local/make_excel_workbook.nf'
+include { DRAW_ELEMENT_CYCLES } from './modules/local/draw_element_cycles.nf'
 
 
 workflow {
@@ -152,5 +154,24 @@ workflow {
     // 14. Build worksheet 6 (MEROPS results)
     MAKE_RESULT_TABLE6(
         RUN_MEROPS.out.parsed.map { meta, parsed -> parsed }.collect()
+    )
+
+    // 15. Build final Excel workbook from worksheets 1-6
+    MAKE_EXCEL_WORKBOOK(
+        MAKE_RESULT_TABLES.out,
+        MAKE_RESULT_TABLE2.out,
+        MAKE_RESULT_TABLE3.out,
+        MAKE_RESULT_TABLE4.out,
+        MAKE_RESULT_TABLE5.out.worksheet5,
+        MAKE_RESULT_TABLE6.out.worksheet6,
+        file("${baseDir}/bin/R/create_excel_spreadsheet.R")
+    )
+
+    // 16. Draw element cycling diagrams
+    DRAW_ELEMENT_CYCLES(
+        ch_motifcheck_all,
+        ch_faa_all,
+        file(params.r_pathways),
+        file("${baseDir}/bin/R/draw_biogeochemical_cycles.R")
     )
 }
