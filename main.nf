@@ -15,6 +15,8 @@ include { RUN_MEROPS } from './modules/local/run_merops.nf'
 include { MAKE_RESULT_TABLE6 } from './modules/local/make_result_table6.nf'
 include { MAKE_EXCEL_WORKBOOK } from './modules/local/make_excel_workbook.nf'
 include { DRAW_ELEMENT_CYCLES } from './modules/local/draw_element_cycles.nf'
+include { SETUP_EGGNOG } from './modules/local/setup_eggnog.nf'
+include { RUN_EGGNOG } from './modules/local/run_eggnog.nf'
 
 
 workflow {
@@ -78,6 +80,10 @@ workflow {
     // 4c. Set up MEROPS database, then run MEROPS per genome FAA
     SETUP_MEROPS()
     RUN_MEROPS(ANNOTATE_MAGS.out.faa, SETUP_MEROPS.out.merops_db, SETUP_MEROPS.out.merops_lib)
+
+    // 4d. Set up eggnog-mapper database, then run eggnog-mapper per genome FAA
+    SETUP_EGGNOG()
+    RUN_EGGNOG(ANNOTATE_MAGS.out.faa, SETUP_EGGNOG.out.eggnog_db)
 
     // 5. Run HMM search for every genome and each HMM file (this is heavy by design)
     ch_faa_hmm = ch_faa.combine(ch_hmms).map { row ->
