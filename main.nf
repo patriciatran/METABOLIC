@@ -17,6 +17,8 @@ include { MAKE_EXCEL_WORKBOOK } from './modules/local/make_excel_workbook.nf'
 include { DRAW_ELEMENT_CYCLES } from './modules/local/draw_element_cycles.nf'
 include { SETUP_EGGNOG } from './modules/local/setup_eggnog.nf'
 include { RUN_EGGNOG } from './modules/local/run_eggnog.nf'
+include { GTDBTK_CLASSIFYWF } from './modules/local/gtdbtk.nf'
+include { READ_MAPPING } from './modules/local/read_mapping.nf'
 
 
 workflow {
@@ -62,6 +64,38 @@ workflow {
 
     // 3. Run the annotation
     ANNOTATE_MAGS(ch_inputs, ch_gff_script)
+
+    // 3b. Optional: map reads to genomes and generate sorted/indexed alignment files
+    if (params.run_read_mapping) {
+        if (!params.read_mapping_manifest) {
+            error "--read_mapping_manifest is required when --run_read_mapping true"
+        }
+
+        ch_reads_for_mapping = Channel
+            .fromPath(params.read_mapping_manifest, checkIfExists: true)
+            .splitText()
+            .map { it.trim() }
+            .filter { line -> line && !line.startsWith('#') }
+            .map { line ->
+                def cols = line.split(',')
+                if (cols.size() < 2) {
+                    error "Invalid read mapping manifest line (expected at least sample_id,read1): ${line}"
+                }
+                def meta = [id: cols[0].trim()]
+                def read1 = cols[1].trim()
+                def read2 = cols.size() > 2 ? cols[2].trim() : ''
+                [meta, read1, read2]
+            }
+
+        ch_gene_files_for_mapping = ANNOTATE_MAGS.out.genes
+            .map { meta, gene -> gene }
+            .collect()
+
+        READ_MAPPING(
+            ch_reads_for_mapping,
+            ch_gene_files_for_mapping
+        )
+    }
 
     // 4. Prepare HMM database sources
     ch_hmms = Channel
@@ -180,4 +214,17 @@ workflow {
         file(params.r_pathways),
         file("${baseDir}/bin/R/draw_biogeochemical_cycles.R")
     )
+
+    // 17. Optional: GTDB-Tk classification (METABOLIC-C style taxonomy support)
+    if (params.run_gtdbtk) {
+        ch_bins_for_gtdb = Channel.of([[id: 'all_bins'], params.input_genome_folder])
+
+        ch_gtdb_db = file(params.gtdbtk_db_path)
+
+        GTDBTK_CLASSIFYWF(
+            ch_bins_for_gtdb,
+            ch_gtdb_db,
+            params.gtdbtk_tmp
+        )
+    }
 }
